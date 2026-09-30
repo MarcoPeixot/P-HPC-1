@@ -1,6 +1,6 @@
 # P-HPC-1 — MPI e PLN distribuído
 
-Entrega das Partes 1 e 2: experimentos MPI da Aula 3 e pipeline de PLN distribuído com dataset público. Os códigos, relatórios e evidências estão preparados localmente. **Nenhum staging, commit ou push foi realizado.**
+Entrega das Partes 1 e 2: experimentos MPI da Aula 3 e pipeline de PLN distribuído com dataset público. Os códigos, relatórios e evidências históricos estão publicados em `main`. As alterações de reprodução desta revisão permanecem locais até um novo commit e push.
 
 ## Parte 1 — Aula 3
 
@@ -36,6 +36,8 @@ O [pipeline](pipeline/pipeline.py) implementa tokenização Unicode, remoção d
 | Relatório de resultados e gargalos | [pipeline/RELATORIO.md](pipeline/RELATORIO.md) |
 | Preparação reproduzível do dataset | [pipeline/preparar_dataset.py](pipeline/preparar_dataset.py) |
 | Quatro etapas do pipeline | [pipeline/pipeline.py](pipeline/pipeline.py) |
+| Dependências Python | [pipeline/requirements.txt](pipeline/requirements.txt) |
+| Execução completa e agregação automática | [pipeline/executar_tudo.sh](pipeline/executar_tudo.sh) |
 | Submissão das seis configurações | [pipeline/submeter.sh](pipeline/submeter.sh) |
 | Job Slurm com três repetições por configuração | [pipeline/job_corpus.sbatch](pipeline/job_corpus.sbatch) |
 | Agregação das medianas | [pipeline/agregar.py](pipeline/agregar.py) |
@@ -68,8 +70,8 @@ python3 aula03/analisa_speedup.py resultados/speedup.csv
 
 Para gerar novamente o gráfico, o ambiente Python precisa ter Matplotlib. Para os jobs MPI, use um diretório compartilhado e gravável em `/home`, carregue `gnu15` e `openmpi5`, compile com `make` e use os scripts de `aula03/`.
 
-Para o corpus, siga o passo a passo de [ROTEIRO_PARTE02.md](ROTEIRO_PARTE02.md) e os detalhes de [pipeline/README.md](pipeline/README.md). O ambiente do cluster é `hpc`; código e saídas ficam em `/home/g02/corpus`. Na inspeção desta validação, os quatro nós estavam disponíveis.
+Para o corpus, siga o passo a passo de [ROTEIRO_PARTE02.md](ROTEIRO_PARTE02.md) e os detalhes de [pipeline/README.md](pipeline/README.md). O README do pipeline inclui clone, instalação do ambiente `hpc` e dos requirements, permissões do dataset, testes e execução com `bash pipeline/executar_tudo.sh`. As execuções históricas ficam em `/home/g02/corpus`; uma nova reprodução usa o clone compartilhado em `/home/g02/P-HPC-1`.
 
 ## Estado do Git
 
-Repositório público: [MarcoPeixot/P-HPC-1](https://github.com/MarcoPeixot/P-HPC-1). Branch local: `docs/relatorio-hpc`. O remoto está configurado, mas os arquivos continuam locais, sem staging, commit ou push.
+Repositório público: [MarcoPeixot/P-HPC-1](https://github.com/MarcoPeixot/P-HPC-1). Branch local e padrão do remoto: `main`. O conteúdo histórico está publicado. Esta revisão de reprodução não foi commitada nem enviada ao remoto.

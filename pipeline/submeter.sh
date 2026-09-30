@@ -24,9 +24,9 @@ for workers in 1 2 4 8 16 32; do
     8) nodes=2;;
     16|32) nodes=4;;
   esac
-  dependency=()
-  [[ -z "$previous" ]] || dependency=(--dependency="afterany:$previous")
-  job=$(sbatch --parsable "${dependency[@]}" --nodes="$nodes" job_corpus.sbatch "$workers" "$BATCH")
+  options=(--parsable --nodes="$nodes")
+  [[ -z "$previous" ]] || options+=(--dependency="afterany:$previous")
+  job=$(sbatch "${options[@]}" job_corpus.sbatch "$workers" "$BATCH")
   printf '%s,%s,%s\n' "$workers" "$nodes" "$job" | tee -a "$BATCH/slurm_jobs.csv"
   previous=$job
 done
