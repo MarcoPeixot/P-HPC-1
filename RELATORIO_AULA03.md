@@ -120,4 +120,4 @@ N permanece fixo, portanto o experimento avalia strong scaling. As duas séries 
 | Tabela de speedup e eficiência | Seção Bloco 4 |
 | Cinco respostas conforme os enunciados | Seção “As cinco respostas do experimento” |
 
-A comparação numérica com PCIe do Bloco 2 depende do dado da Aula 1, ainda ausente. Todos os demais itens acima foram conferidos com o roteiro e os logs disponíveis. Os arquivos estão no repositório local, sem staging, commit ou push; o conteúdo ainda não foi publicado no GitHub.
+A comparação numérica com PCIe do Bloco 2 depende do dado da Aula 1, ainda ausente. Todos os demais itens acima foram conferidos com o roteiro e os logs disponíveis.
