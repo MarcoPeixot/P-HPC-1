@@ -169,5 +169,3 @@ As matrizes completas do lote validado permanecem em `/home/g02/corpus/resultado
 O lote `run-20260930-corpus02` concluiu os jobs 122–127: seis configurações e 18 repetições. Foram conferidos 129.098 documentos, 47.801 termos de vocabulário, 2.304 matrizes e igualdade dos resultados entre configurações. As seis medianas foram recalculadas contra as medições individuais.
 
 O melhor tempo foi 4,735173 s com dois workers, contra 6,353340 s com um. As configurações maiores foram mais lentas; o [relatório](pipeline/RELATORIO.md) discute coordenação, comunicação e I/O. O objetivo é registrar o resultado observado, mesmo quando adicionar workers não acelera o pipeline.
-
-Este roteiro documenta a reprodução. Sua criação não submeteu novos jobs nem realizou staging, commit ou push.
