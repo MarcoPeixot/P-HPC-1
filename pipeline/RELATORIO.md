@@ -1,12 +1,12 @@
-# Relatório — Parte 2: PLN distribuído com Dask
+# Relatório da Parte 2: PLN distribuído com Dask
 
-**Data:** 30/09/2026. **Cluster:** OpenHPC/Slurm, nós `c1`, `c2`, `c3`, `c4`. **Usuário:** `g02`.
+30/09/2026. Cluster OpenHPC/Slurm, nós `c1`, `c2`, `c3`, `c4`, usuário `g02`.
 
 ## Dataset
 
 O [B2W-Reviews01, da B2W Digital](https://github.com/americanas-tech/b2w-reviews01) contém avaliações de produtos em português brasileiro. O snapshot utilizado é o commit `4639429ec698d7821fc99a0bc665fa213d9fcd5a`, sob licença CC BY-NC-SA 4.0. O arquivo original tem 132.373 registros e 49.453.175 bytes (47,16 MiB), em CSV UTF-8 separado por vírgulas. A leitura considera aspas e campos multilinha.
 
-Foi usado apenas `review_text`: 3.275 registros sem texto foram excluídos, resultando em **129.098 documentos**. Duplicatas foram preservadas. A preparação gerou 128 shards JSONL e uma lista fixa de 207 stopwords, com 21.430.941 bytes (20,44 MiB) no total. Os hashes e metadados estão em [dataset-manifest.json](dataset-manifest.json).
+Foi usado apenas `review_text`: 3.275 registros sem texto foram excluídos, resultando em 129.098 documentos. Duplicatas foram preservadas. A preparação gerou 128 shards JSONL e uma lista fixa de 207 stopwords, com 21.430.941 bytes (20,44 MiB) no total. Os hashes e metadados estão em [dataset-manifest.json](dataset-manifest.json).
 
 No NFS, o original e os arquivos preparados estão em `/opt/ohpc/pub/datasets/b2w-reviews01`. As saídas ficam em `/home/g02/corpus/resultados/run-20260930-corpus02`, pois os nós montam `/opt/ohpc/pub` somente para leitura.
 
@@ -21,7 +21,7 @@ O vocabulário e o IDF são calculados para todo o corpus e usados por todos os 
 
 ## Execuções via Slurm
 
-Foram concluídos os jobs **122–127**, todos com código de saída zero, somando **18 repetições completas**. Cada configuração usou uma thread por worker e três repetições do corpus integral. As alocações foram exclusivas e sequenciais. Até 16 workers há quatro por nó; 32 workers utiliza oito por nó, incluindo SMT. A configuração de um worker rodou em um único nó.
+Os jobs 122 a 127 concluíram com código de saída zero, somando 18 repetições completas. Cada configuração usou uma thread por worker e três repetições do corpus integral. As alocações foram exclusivas e sequenciais. Até 16 workers há quatro por nó; 32 workers utiliza oito por nó, incluindo SMT. A configuração de um worker rodou em um único nó.
 
 | Workers | Nós | Repetições | Mediana total (s) | Mediana serial (s) | Mediana t_calc (s) | Speedup | Eficiência |
 | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
@@ -36,16 +36,16 @@ O arquivo [speedup_corpus.csv](../resultados/speedup_corpus.csv) usa o mesmo cab
 
 ### Interpretação
 
-O menor tempo foi observado com **2 workers**, em um nó: **4.735 s**, contra **6.353 s** com um worker, speedup de **1.342**. Mais workers reduziram a parcela distribuída em vários casos, mas elevaram a coordenação e a distribuição do vocabulário/IDF; isso fez o tempo total piorar nas configurações com vários nós.
+O menor tempo foi com 2 workers, no mesmo nó: 4.735 s contra 6.353 s com um worker, speedup de 1.342. Mais workers reduziram a parcela distribuída em vários casos, mas elevaram a coordenação e a distribuição do vocabulário/IDF; isso fez o tempo total piorar nas configurações com vários nós.
 
-O benchmark mede o pipeline completo, incluindo comunicação e escrita das matrizes, e não somente o cálculo local de tokens. O corpus tem textos curtos e quantidade fixa de dados; aumentar workers não garante acelerar essa carga. `t_serial` inclui a coordenação medida no cliente e o broadcast do vocabulário/IDF; `t_calc` é o restante do tempo de parede, incluindo comunicação, espera e I/O. As três repetições não limpam caches e a ordem é fixa. Esses resultados descrevem este corpus, esta implementação e este cluster; não permitem concluir que Dask tenha pior desempenho em geral.
+O benchmark mede o pipeline completo, incluindo comunicação e escrita das matrizes, não só o cálculo local de tokens. O corpus tem textos curtos e quantidade fixa de dados; aumentar workers não garante acelerar essa carga. `t_serial` inclui a coordenação medida no cliente e o broadcast do vocabulário/IDF; `t_calc` é o restante do tempo de parede, incluindo comunicação, espera e I/O. As três repetições não limpam caches e a ordem é fixa. Esses resultados descrevem este corpus, esta implementação e este cluster; não permitem concluir que Dask tenha pior desempenho em geral.
 
 ## Estatísticas do corpus
 
-- Documentos processados: **129,098**.
-- Vocabulário após stopwords: **47,801 termos**.
-- Valores não nulos nas matrizes: **1,607,559**.
-- Documentos com vetor zero após a limpeza: **100**, mantidos no corpus.
+- Documentos processados: 129.098
+- Vocabulário após stopwords: 47.801 termos
+- Valores não nulos nas matrizes: 1.607.559
+- Documentos com vetor zero após a limpeza: 100, mantidos no corpus
 
 | Medida de tamanho em tokens | Antes de stopwords | Depois de stopwords |
 | --- | ---: | ---: |
@@ -82,17 +82,13 @@ O ranking soma o peso TF-IDF normalizado de cada termo sobre todos os documentos
 ## Validação e evidências
 
 - Dois testes de correção passaram localmente e no ambiente `hpc` do master: IDF global/L2, vetores vazios, invariância entre workers, hashes e agregação de medianas.
-- Foram comparadas as 128 partições das 18 repetições: **2.176 comparações entre partições de execuções distintas**, com arrays CSR idênticos.
-- Vocabulários e estatísticas foram idênticos em todas as repetições. Foram confirmados IDs únicos, 129.098 documentos e norma L2 unitária em todas as linhas não vazias.
-- As seis configurações possuem três medições reais, mesmo protocolo `b2w-global-tfidf-v2`, mesmo manifest e mesmo SHA-256 do executor.
+- Comparamos as 128 partições das 18 repetições (2.176 pares entre execuções distintas); os arrays CSR foram idênticos.
+- Vocabulários e estatísticas foram idênticos em todas as repetições. Confirmamos IDs únicos, 129.098 documentos e norma L2 unitária em todas as linhas não vazias.
+- As seis configurações têm três medições reais, mesmo protocolo `b2w-global-tfidf-v2`, mesmo manifest e mesmo SHA-256 do executor.
 - Medições individuais, logs dos jobs, vocabulário e [validation.json](../resultados/pipeline/run-20260930-corpus02/validation.json) estão em [resultados/pipeline/run-20260930-corpus02](../resultados/pipeline/run-20260930-corpus02). As 2.304 matrizes NPZ continuam no NFS, sem incluí-las no Git.
 
-### Ajustes necessários no cluster
+### Ajustes no cluster
 
 O nó `c2` estava acessível, mas marcado como sem resposta no controlador; a solicitação de retorno ao serviço regularizou seu registro, sem reiniciar os serviços. Os quatro nós participaram dos jobs com 16 e 32 workers e terminaram disponíveis.
 
 A tentativa inicial revelou incompatibilidade entre broadcast de dados globais e a política padrão `ReduceReplicas` do Active Memory Manager. O executor agora desativa o AMM no scheduler temporário de cada job antes de medir. Após a correção, todas as configurações foram repetidas no lote `corpus02`; medições da tentativa anterior não entram no CSV final.
-
-## Estado da entrega
-
-Dataset, pipeline, submissões, 18 repetições, CSV de medianas, estatísticas e evidências estão preparados. **Nenhum commit, staging ou push foi realizado nesta parte.**

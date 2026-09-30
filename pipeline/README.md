@@ -1,6 +1,28 @@
 # Parte 2 — PLN distribuído com B2W-Reviews01
 
-Esta parte implementa e mede tokenização, remoção de stopwords, TF-IDF e estatísticas do corpus com Dask sobre Slurm. A Parte 1 contém os experimentos MPI da Aula 3.
+O ponto de entrada desta parte é [experimento_pln.ipynb](experimento_pln.ipynb), com o código completo e a análise. O notebook implementa e demonstra tokenização, remoção de stopwords, TF-IDF e estatísticas, e permite submeter o experimento Dask/Slurm. Os scripts continuam como entradas dos jobs. A Parte 1 contém os experimentos MPI da Aula 3.
+
+## Abrir e executar o notebook
+
+Após instalar [requirements.txt](requirements.txt), no diretório `pipeline`:
+
+```bash
+jupyter lab experimento_pln.ipynb
+```
+
+Selecione o kernel do ambiente em que os requirements foram instalados e execute as células do início ao fim. O notebook contém preparação, as quatro etapas, agregação, dois testes executáveis e análise das 18 medições reais com tabelas e gráficos. A configuração padrão usa uma fixture pequena para testar o código e lê os resultados publicados; não baixa o dataset nem submete novos jobs.
+
+Para outra execução real, abra no master como `g02` e altere `EXECUTAR_CLUSTER = True`, após preparar ambiente, NFS e permissões conforme os passos abaixo. A célula de submissão chama `executar_tudo.sh`; a análise padrão continua apontando para o lote histórico até que `EVIDENCIAS` e `CSV_MEDIANAS` sejam ajustados para outro lote.
+
+Para abrir JupyterLab no master e acessar do notebook pessoal:
+
+```bash
+source /opt/ohpc/pub/apps/miniforge3/bin/activate hpc
+cd /home/g02/P-HPC-1/pipeline
+jupyter lab --no-browser --ip=127.0.0.1 --port=8888 experimento_pln.ipynb
+```
+
+Em outro terminal no computador pessoal, use `ssh -L 8888:127.0.0.1:8888 g02@10.128.0.4` e abra a URL local com o token exibido pelo Jupyter. O arquivo inclui código completo; `pipeline.py`, `preparar_dataset.py` e `agregar.py` continuam disponíveis para execução batch. As medições históricas foram geradas por esses scripts, não pela execução atual do notebook.
 
 ## Dataset e rastreabilidade
 
@@ -85,7 +107,7 @@ sudo /opt/ohpc/pub/apps/miniforge3/bin/conda create -y -n hpc python=3.11 pip
 sudo /opt/ohpc/pub/apps/miniforge3/envs/hpc/bin/python -m pip install -r /home/g02/P-HPC-1/pipeline/requirements.txt
 ```
 
-As dependências diretas estão em [requirements.txt](requirements.txt): NumPy 2.4.6, Dask 2026.8.0 e Distributed 2026.8.0. O preparador usa a biblioteca padrão; stopwords são baixadas de um snapshot fixo, sem exigir instalação do NLTK. O benchmark histórico usou Python 3.11.16.
+As dependências diretas estão em [requirements.txt](requirements.txt): NumPy 2.4.6, Dask/Distributed 2026.8.0, JupyterLab 4.6.4, ipykernel 7.4.0 e Matplotlib 3.11.2. O preparador usa a biblioteca padrão; stopwords são baixadas de um snapshot fixo, sem exigir instalação do NLTK. O benchmark histórico usou Python 3.11.16.
 
 A instalação não interativa segue a [documentação oficial do Miniforge](https://github.com/conda-forge/miniforge#install). `/opt/ohpc/pub` precisa estar montado nos workers, com permissão de leitura dos arquivos e execução dos binários.
 
