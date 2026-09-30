@@ -61,21 +61,31 @@ A lei de Amdahl modela o speedup como
 S(p)=\frac{1}{f+\frac{1-f}{p}},
 \]
 
-onde \(f\) é uma fração serial constante. Aplicando aos seis pontos do corpus o mesmo ajuste linear usado na Aula 3,
+onde \(f\) é uma fração serial constante e se assume que o overhead não cresce com \(p\). Linearizando,
 
 \[
-\frac{1}{S(p)}=f+(1-f)\frac{1}{p},
+\frac{1}{S(p)}=f+(1-f)\frac{1}{p}.
 \]
 
-o intercepto sem restrição é \(f=1{,}3739\), ou 137,4%. Esse valor é impossível como fração física. Ao impor o intervalo válido \(0\leq f\leq1\), o ajuste satura em **\(f_{efetivo}=1{,}000\), ou 100%**, com limite assintótico \(S_{max}=1/f=1\). Portanto, o ajuste global não deve ser interpretado como a porcentagem literal de instruções seriais. Ele diagnostica que o modelo simples de Amdahl não descreve a curva, pois os custos de coordenação, comunicação e I/O aumentam com o paralelismo.
+O ajuste linear dos seis pontos tem intercepto \(f=1{,}3739\), ou 137,4%, que não pode ser uma fração física. Não é adequado truncar esse resultado para 100% e apresentá-lo como estimativa: para \(0\leq f\leq1\), o modelo clássico prevê \(S(p)\geq1\), mas o pipeline medido fica abaixo de 1 a partir de oito workers. Isso indica que uma fração serial constante não explica os dados; overhead variável precisa ser considerado.
 
-Como referência local, usando apenas a passagem de um para dois workers,
+Uma estimativa local ainda útil vem da passagem de um para dois workers:
 
 \[
 f_{1\rightarrow2}=\frac{1/S(2)-1/2}{1-1/2}=0{,}4906.
 \]
 
-Essa estimativa corresponde a **49,1% de fração serial efetiva** e a \(S_{max}\approx2{,}04\), mas vale apenas para a região de baixa concorrência. Em configurações maiores, a inversão ponto a ponto de Amdahl produz valores acima de 100%, confirmando que apareceu overhead dependente de \(p\). Para esta entrega, considero \(f_{efetivo}=1{,}00\) a estimativa global do ajuste e \(f_{1\rightarrow2}=0{,}49\) uma estimativa local mais interpretável.
+Assim, **a fração serial efetiva estimada nessa passagem é 49,1%**, correspondente a um limite ideal \(S_{max}=1/f\approx2{,}04\). Ela não deve ser confundida com a fração literal de instruções seriais nem extrapolada para todas as configurações. A tabela compara essa previsão com os dados e mostra a fração que cada ponto exigiria se fosse explicado isoladamente pelo modelo:
+
+| Workers \(p\) | Speedup medido | Speedup previsto com \(f=0{,}4906\) | \(f\) aparente do ponto |
+| ---: | ---: | ---: | ---: |
+| 2 | 1,342 | 1,342 | 49,1% |
+| 4 | 1,252 | 1,618 | 73,2% |
+| 8 | 0,790 | 1,804 | 130,5% |
+| 16 | 0,689 | 1,914 | 148,1% |
+| 32 | 0,569 | 1,974 | 178,3% |
+
+Os valores acima de 100% não são frações seriais físicas. São um diagnóstico de que o custo efetivo cresce com o paralelismo; portanto, os 49,1% são a estimativa de Amdahl mais interpretável para a região de baixa concorrência, enquanto os demais pontos evidenciam o limite do modelo simples.
 
 ## Conclusão
 
