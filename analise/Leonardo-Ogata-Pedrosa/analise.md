@@ -4,9 +4,9 @@
 
 Comparei os seis pontos de `resultados/speedup_corpus.csv` com os seis pontos de `resultados/speedup.csv`. Para cada experimento, calculei o speedup por
 
-\[
+$$
 S(p)=\frac{T(1)}{T(p)}
-\]
+$$
 
 e a eficiência por \(E(p)=S(p)/p\). O pipeline de corpus usa a mediana de três execuções em cada configuração. O `pi_mpi` usa, conforme o roteiro da Aula 3, o menor tempo entre as duas séries completas. Os dois experimentos são de *strong scaling*: o tamanho do problema permanece fixo enquanto cresce o número de workers ou processos.
 
@@ -57,9 +57,9 @@ O corpus inteiro leva apenas 6,353 s na referência. Ao dividi-lo entre muitos w
 
 A lei de Amdahl modela o speedup como
 
-\[
+$$
 S(p)=\frac{1}{f+\frac{1-f}{p}},
-\]
+$$
 
 onde \(f\) é uma fração serial constante e se assume que o overhead não cresce com \(p\). Linearizando,
 
@@ -71,9 +71,9 @@ O ajuste linear dos seis pontos tem intercepto \(f=1{,}3739\), ou 137,4%, que n�
 
 Uma estimativa local ainda útil vem da passagem de um para dois workers:
 
-\[
+$$
 f_{1\rightarrow2}=\frac{1/S(2)-1/2}{1-1/2}=0{,}4906.
-\]
+$$
 
 Assim, **a fração serial efetiva estimada nessa passagem é 49,1%**, correspondente a um limite ideal \(S_{max}=1/f\approx2{,}04\). Ela não deve ser confundida com a fração literal de instruções seriais nem extrapolada para todas as configurações. A tabela compara essa previsão com os dados e mostra a fração que cada ponto exigiria se fosse explicado isoladamente pelo modelo:
 
