@@ -2,9 +2,10 @@
 set -euo pipefail
 if [[ $(id -u) -eq 0 ]]; then echo 'Submeta como g02.' >&2; exit 1; fi
 cd "$(dirname "$0")"
-BATCH=${1:-"$PWD/resultados/run-$(date +%Y%m%d-%H%M%S)"}
+REPO_ROOT=$(cd .. && pwd)
+BATCH=${1:-"$REPO_ROOT/resultados/run-$(date +%Y%m%d-%H%M%S)"}
 if [[ -e "$BATCH" ]]; then echo "Lote já existe: $BATCH" >&2; exit 1; fi
-mkdir -p "$BATCH" logs
+mkdir -p "$BATCH/logs" logs
 BATCH=$(cd "$BATCH" && pwd)
 source /opt/ohpc/pub/apps/miniforge3/bin/activate hpc
 python - <<'PY'
@@ -26,8 +27,9 @@ for workers in 1 2 4 8 16 32; do
   esac
   dependency=()
   [[ -z "$previous" ]] || dependency=(--dependency="afterany:$previous")
-  job=$(sbatch --parsable "${dependency[@]}" --nodes="$nodes" job_corpus.sbatch "$workers" "$BATCH")
+  job=$(sbatch --parsable "${dependency[@]}" --nodes="$nodes" \
+    --output="$BATCH/logs/corpus-%j.out" job_corpus.sbatch "$workers" "$BATCH")
   printf '%s,%s,%s\n' "$workers" "$nodes" "$job" | tee -a "$BATCH/slurm_jobs.csv"
   previous=$job
 done
-printf 'Lote: %s\nAgregue ao terminar: python agregar.py %q --output ../resultados/speedup_corpus.csv\n' "$BATCH" "$BATCH"
+printf 'Lote: %s\nAgregue ao terminar (na raiz do projeto): python pipeline/agregar.py %q --output resultados/speedup_corpus.csv\n' "$BATCH" "$BATCH"

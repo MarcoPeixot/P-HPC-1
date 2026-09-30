@@ -55,7 +55,7 @@ A implementação usa [B2W-Reviews01, da B2W Digital](https://github.com/america
 Para preparar o dataset, executar **no master com permissão de escrita no diretório do dataset**:
 
 ```bash
-python3.11 /home/g02/corpus/preparar_dataset.py
+python3.11 /home/g02/corpus/pipeline/preparar_dataset.py --directory /opt/ohpc/pub/datasets/b2w-reviews01
 ```
 
 O [preparador](pipeline/preparar_dataset.py) baixa snapshots fixados, confere hashes, exclui textos vazios, prepara as partições e salva `manifest.json`. Quando a preparação já existe, confere os arquivos e reutiliza o dataset. O original completo permanece no NFS; o repositório contém [os metadados](pipeline/dataset-manifest.json), o código e os resultados.
@@ -73,8 +73,8 @@ Antes do benchmark, no master com o ambiente `hpc` ativado:
 
 ```bash
 cd /home/g02/corpus
-python test_pipeline.py
-bash -n job_corpus.sbatch submeter.sh
+python pipeline/test_pipeline.py
+bash -n pipeline/job_corpus.sbatch pipeline/submeter.sh
 ```
 
 Os testes conferem IDF global, normalização L2, vetores vazios, invariância entre workers, integridade do dataset e agregação das medianas.
@@ -98,7 +98,7 @@ Como `g02`, definir um **novo diretório de lote** e submeter:
 cd /home/g02/corpus
 source /opt/ohpc/pub/apps/miniforge3/bin/activate hpc
 LOTE="$PWD/resultados/run-$(date +%Y%m%d-%H%M%S)"
-bash submeter.sh "$LOTE"
+bash pipeline/submeter.sh "$LOTE"
 squeue -u g02
 cat "$LOTE/slurm_jobs.csv"
 ```
@@ -111,7 +111,7 @@ Depois que os jobs terminarem, na mesma sessão em que `LOTE` foi definido:
 
 ```bash
 cd /home/g02/corpus
-python agregar.py "$LOTE" --output resultados/speedup_corpus.csv
+python pipeline/agregar.py "$LOTE" --output resultados/speedup_corpus.csv
 cat resultados/speedup_corpus.csv
 ```
 

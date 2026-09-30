@@ -55,22 +55,22 @@ A ordem de configurações é fixa. As repetições não limpam cache de filesys
 Preparar somente no master, com permissão de escrita em `/opt/ohpc/pub`:
 
 ```bash
-python3.11 /home/g02/corpus/preparar_dataset.py
+python3.11 /home/g02/corpus/pipeline/preparar_dataset.py --directory /opt/ohpc/pub/datasets/b2w-reviews01
 ```
 
-Os nós leem `/opt/ohpc/pub` por NFS somente leitura; saídas e logs ficam em `/home/g02/corpus`, que permite escrita compartilhada. Como `g02`:
+Os nós leem `/opt/ohpc/pub` por NFS somente leitura; saídas e logs de cada lote ficam em `/home/g02/corpus/resultados`, que permite escrita compartilhada. Como `g02`:
 
 ```bash
 cd /home/g02/corpus
-bash submeter.sh
+bash pipeline/submeter.sh
 squeue -u g02
 ```
 
-Ao terminar, agregar o lote informado pelo script:
+Ao terminar, agregar o lote informado pelo script. A saída padrão Slurm fica em `LOTE/logs/corpus-<job>.out`:
 
 ```bash
 source /opt/ohpc/pub/apps/miniforge3/bin/activate hpc
-python agregar.py resultados/run-AAAAMMDD-HHMMSS --output resultados/speedup_corpus.csv
+python pipeline/agregar.py resultados/run-AAAAMMDD-HHMMSS --output resultados/speedup_corpus.csv
 ```
 
 A agregação exige três repetições completas para incluir cada configuração e recusa mistura de corpus, protocolo ou código. Não gera medições fictícias para jobs pendentes ou falhos.
@@ -79,8 +79,8 @@ A agregação exige três repetições completas para incluir cada configuraçã
 
 ```bash
 source /opt/ohpc/pub/apps/miniforge3/bin/activate hpc
-python test_pipeline.py
-bash -n job_corpus.sbatch submeter.sh
+python pipeline/test_pipeline.py
+bash -n pipeline/job_corpus.sbatch pipeline/submeter.sh
 ```
 
 O teste usa três documentos com DF/IDF conhecidos, verifica os valores TF-IDF e vetor vazio, compara matrizes e estatísticas com um e dois workers e confirma rejeição de dados alterados. O benchmark real usa o corpus integral, não a fixture.
