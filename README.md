@@ -1,78 +1,94 @@
-# P-HPC-1 — MPI e PLN distribuído
+# P-HPC-1: MPI e PLN distribuído
 
-Entrega das Partes 1 e 2: experimentos MPI da Aula 3 e pipeline de PLN distribuído com dataset público. Os códigos, relatórios e evidências históricos estão publicados em `main`; esta revisão alinha os comandos documentados à estrutura atual do repositório e organiza os logs por lote.
+Entrega das Partes 1 e 2 da ponderada de HPC: experimentos MPI da Aula 3 e pipeline de PLN distribuído com Dask.
 
-## Parte 1 — Aula 3
+## Estrutura do repositório
 
-Conferida com `Roteiro Aula 3 - MPI e SLURM.pdf`, Inteli 2026.2, Prof. João Luisi. O [relatório](RELATORIO_AULA03.md) contém as tabelas dos Blocos 2 e 3, as três respostas de cada bloco, a tabela de speedup e eficiência e as cinco respostas do experimento.
+```
+P-HPC-1/
+├── aula03/               # Parte 1 — Aula 3: códigos e logs MPI
+├── pipeline/             # Parte 2 — esta aula: pipeline TF-IDF com Dask
+├── resultados/           # CSVs de resultado de ambas as partes
+│   ├── bloco2-pingpong.csv      # Aula 3: latência e largura de banda MPI
+│   ├── bloco3-soma.csv          # Aula 3: soma paralela com MPI_Reduce
+│   ├── speedup.csv              # Aula 3: curva de speedup do pi_mpi
+│   ├── speedup_corpus.csv       # Esta aula: curva de speedup do pipeline NLP
+│   ├── sha256-originais.txt     # Aula 3: hashes dos arquivos MPI originais
+│   └── pipeline/                # Esta aula: medições individuais por rodada
+├── analise/              # Anotações de análise
+├── RELATORIO_AULA03.md   # Relatório completo da Parte 1
+├── ROTEIRO_PARTE02.md    # Passo a passo de execução da Parte 2
+└── speedup.png           # Aula 3: gráfico ideal × Amdahl × medido
+```
 
-| Item | Arquivo |
-| --- | --- |
-| Relatório completo da Aula 3 | [RELATORIO_AULA03.md](RELATORIO_AULA03.md) |
-| Tabela do Bloco 2: tempos e razão entre nós | [resultados/bloco2-pingpong.csv](resultados/bloco2-pingpong.csv) |
-| Tabela do Bloco 3: tempos do rank 0 e validação | [resultados/bloco3-soma.csv](resultados/bloco3-soma.csv) |
-| Seis pontos de π: 1, 2, 4, 8, 16 e 32 processos | [resultados/speedup.csv](resultados/speedup.csv) |
-| Gráfico: ideal, Amdahl e medido, eixo x em log base 2 | [speedup.png](speedup.png) |
-| Códigos e logs originais | [aula03/](aula03/) |
-| CSV original com todas as medições | [aula03/resultados/speedup-original.csv](aula03/resultados/speedup-original.csv) |
-| Integridade dos arquivos originais MPI | [resultados/sha256-originais.txt](resultados/sha256-originais.txt) |
+---
 
-Os resultados MPI foram recuperados de `/home/test/aula03-codigo`, com registros de 09/09/2026. O CSV de entrega seleciona o menor tempo de cada ponto entre as duas séries completas, jobs 27–32 e 35–40. Cada linha preserva todas as colunas do job escolhido. O gráfico usa esses mesmos seis pontos; as configurações adicionais não foram misturadas às séries.
+## Parte 1 — Aula 3: experimentos MPI
 
-A comparação numérica com PCIe, citada em uma pergunta adicional do Bloco 2, depende do dado da Aula 1, ainda não fornecido. Essa ausência está declarada no relatório e não afeta os cinco itens solicitados da Parte 1.
+Experimentos de comunicação e paralelismo com MPI em cluster SLURM. Conferido com o roteiro da Aula 3, Prof. João Luisi, Inteli 2026.2.
 
-## Parte 2 — Pipeline de PLN no cluster
+### Códigos (`aula03/`)
 
-Dataset público: [B2W-Reviews01, da B2W Digital](https://github.com/americanas-tech/b2w-reviews01), com avaliações de produtos em português brasileiro. O original possui 132.373 registros, em CSV UTF-8, e 49.453.175 bytes (47,16 MiB). Foram utilizados **129.098 documentos** com `review_text` não vazio, preparados em 128 arquivos JSONL; shards e stopwords somam 21.430.941 bytes (20,44 MiB).
+| Arquivo | O que faz |
+|---|---|
+| `pingpong.c` | Comunicação ponto a ponto: mede latência e vazão entre dois processos para 1 B, 1 KiB e 1 MiB |
+| `soma_reduce.c` | Soma paralela de 1..2×10⁹ com `MPI_Bcast` + `MPI_Reduce`; valida contra N(N+1)/2 |
+| `pi_mpi.c` | Estimativa de π por Monte Carlo; decompõe tempo em parte serial e paralela |
+| `hello_mpi.c` | Hello world MPI para verificar ambiente |
+| `analisa_speedup.py` | Lê `resultados/speedup.csv` e imprime speedup, eficiência e fração serial (Amdahl) |
+| `speedup.sh` | Submete a série de 6 jobs de pi (1, 2, 4, 8, 16, 32 processos) em cadeia no SLURM |
 
-O original e os arquivos preparados estão no NFS em `/opt/ohpc/pub/datasets/b2w-reviews01`. O [manifest](pipeline/dataset-manifest.json) fixa fonte, snapshot, contagens, tamanhos e hashes. O dataset usa licença CC BY-NC-SA 4.0, com atribuição à B2W Digital, conforme a fonte. O dataset integral permanece no NFS.
+### Resultados da Aula 3 (`resultados/`)
 
-O [notebook completo](pipeline/experimento_pln.ipynb) contém preparação do dataset, código das quatro etapas, testes, submissão e análise com tabelas e gráficos. Os scripts permanecem para a execução dos jobs Slurm. O [executor dos jobs](pipeline/pipeline.py) implementa tokenização Unicode, remoção de stopwords portuguesas, TF-IDF com IDF global e normalização L2, e estatísticas de vocabulário, distribuição de comprimentos e termos com maior soma de TF-IDF. As matrizes são esparsas, em CSR/NPZ.
+| Arquivo | Conteúdo |
+|---|---|
+| `bloco2-pingpong.csv` | Latência (µs) e vazão (MB/s) para mesmo nó e nós diferentes, nos três tamanhos de mensagem |
+| `bloco3-soma.csv` | Tempo do rank 0 e tempo máximo de cálculo para 1, 2, 4, 8 e 32 processos; coluna de validação |
+| `speedup.csv` | Tempo total, serial e de cálculo do pi_mpi para 6 configurações; mediana dos menores tempos entre as duas séries |
+| `speedup.png` | Curva de speedup: ideal, Amdahl (f estimado) e medido, eixo x em log₂ |
+| `sha256-originais.txt` | SHA-256 dos arquivos `.c` e logs usados na análise |
 
-| Item | Arquivo |
-| --- | --- |
-| Notebook completo de execução e análise | [pipeline/experimento_pln.ipynb](pipeline/experimento_pln.ipynb) |
-| Roteiro de execução da Parte 2 | [ROTEIRO_PARTE02.md](ROTEIRO_PARTE02.md) |
-| Descrição do dataset, protocolo e reprodução | [pipeline/README.md](pipeline/README.md) |
-| Relatório de resultados e gargalos | [pipeline/RELATORIO.md](pipeline/RELATORIO.md) |
-| Preparação reproduzível do dataset | [pipeline/preparar_dataset.py](pipeline/preparar_dataset.py) |
-| Quatro etapas do pipeline | [pipeline/pipeline.py](pipeline/pipeline.py) |
-| Dependências Python | [pipeline/requirements.txt](pipeline/requirements.txt) |
-| Execução completa e agregação automática | [pipeline/executar_tudo.sh](pipeline/executar_tudo.sh) |
-| Submissão das seis configurações | [pipeline/submeter.sh](pipeline/submeter.sh) |
-| Job Slurm com três repetições por configuração | [pipeline/job_corpus.sbatch](pipeline/job_corpus.sbatch) |
-| Agregação das medianas | [pipeline/agregar.py](pipeline/agregar.py) |
-| CSV final com o mesmo cabeçalho da Aula 3 | [resultados/speedup_corpus.csv](resultados/speedup_corpus.csv) |
-| Medições individuais e logs dos jobs 122–127 | [resultados/pipeline/run-20260930-corpus02/](resultados/pipeline/run-20260930-corpus02/) |
+O relatório completo (tabelas dos Blocos 2 e 3, cinco respostas do experimento de π e análise de Amdahl) está em [RELATORIO_AULA03.md](RELATORIO_AULA03.md).
 
-## Validação dos requisitos — 30/09/2026
-
-| Requisito solicitado | Resultado da conferência |
-| --- | --- |
-| Tabelas dos Blocos 2 e 3 | Presentes; razão do ping-pong e tempos do rank 0 conferidos nos logs. |
-| Seis pontos de `pi_mpi` | CSV com 1, 2, 4, 8, 16 e 32 processos, selecionando os menores tempos das duas séries. |
-| Gráfico e cinco respostas do experimento | Presentes no relatório, alinhados aos cinco enunciados do PDF. |
-| Dataset público com pelo menos 50.000 documentos no NFS | 129.098 documentos; fonte, idioma, formatos e tamanhos documentados; hashes e contagens conferidos no servidor. |
-| Tokenização, stopwords, TF-IDF e estatísticas | Implementados; dois testes de correção passaram no ambiente `hpc` do master. |
-| Slurm com 1, 2, 4, 8, 16 e 32 workers, três vezes cada | 18 medições completas dos jobs 122–127; um worker em um nó; demais topologias registradas. |
-| Medianas em `resultados/speedup_corpus.csv` | Seis linhas recalculadas contra as medições individuais; cabeçalho `nprocs,nnodes,t_total,t_serial,t_calc`. |
-
-O código local e o executado no cluster têm o mesmo SHA-256; o manifest local corresponde ao manifest do NFS. Foram conferidas as 2.304 matrizes das 18 repetições, com 2.176 comparações entre partições de execuções distintas: arrays CSR, vocabulário e estatísticas idênticos. Foram confirmados 129.098 IDs únicos e normalização L2 das linhas não vazias. Os logs do controlador Slurm registram código de saída zero para os seis jobs 122–127. As saídas completas permanecem em `/home/g02/corpus/resultados/run-20260930-corpus02`, compartilhado e gravável; o dataset em `/opt/ohpc/pub` é somente leitura nos workers.
-
-O melhor tempo mediano do corpus foi com dois workers (4,735173 s), contra 6,353340 s com um. As configurações maiores foram mais lentas; o relatório registra esse resultado e os custos de coordenação, comunicação e I/O. `t_serial` e `t_calc` têm as definições documentadas no protocolo. As medianas são calculadas por coluna e não precisam manter a soma exata entre parcelas.
-
-## Reprodução
-
-Para recalcular o speedup MPI, na raiz local:
+Para recalcular speedup e eficiência localmente:
 
 ```bash
 python3 aula03/analisa_speedup.py resultados/speedup.csv
 ```
 
-Para gerar novamente o gráfico, o ambiente Python precisa ter Matplotlib. Para os jobs MPI, use um diretório compartilhado e gravável em `/home`, carregue `gnu15` e `openmpi5`, compile com `make` e use os scripts de `aula03/`.
+---
 
-Para o corpus, siga o passo a passo de [ROTEIRO_PARTE02.md](ROTEIRO_PARTE02.md) e os detalhes de [pipeline/README.md](pipeline/README.md). O README do pipeline inclui clone, instalação do ambiente `hpc` e dos requirements, permissões do dataset, testes e execução com `bash pipeline/executar_tudo.sh`. As execuções históricas ficam em `/home/g02/corpus`; uma nova reprodução usa o clone compartilhado em `/home/g02/P-HPC-1`.
+## Parte 2 — Pipeline de PLN distribuído
 
-## Estado do Git
+Pipeline TF-IDF global sobre o corpus [B2W-Reviews01](https://github.com/americanas-tech/b2w-reviews01) (avaliações de produtos em português), executado com Dask em cluster SLURM do grupo do laboratório do Inteli.
 
-Repositório público: [MarcoPeixot/P-HPC-1](https://github.com/MarcoPeixot/P-HPC-1). Branch padrão: `main`. Esta revisão corrige a reprodução do pipeline e direciona os logs Slurm para o diretório do lote.
+O corpus tem 129.098 documentos com `review_text` não vazio, preparados em 128 arquivos JSONL a partir de 132.373 registros originais (47,16 MiB). Fica em `/opt/ohpc/pub/datasets/b2w-reviews01` no NFS, somente leitura nos workers. Licença CC BY-NC-SA 4.0, atribuição à B2W Digital.
+
+### Códigos (`pipeline/`)
+
+| Arquivo | O que faz |
+|---|---|
+| `pipeline.py` | Tokenização Unicode, remoção de stopwords, TF-IDF com IDF global, normalização L2; salva matrizes esparsas CSR/NPZ |
+| `preparar_dataset.py` | Converte o CSV original em shards JSONL e gera o manifest com hashes |
+| `agregar.py` | Lê os `measurement.json` de cada rodada e produz `speedup_corpus.csv` com as medianas |
+| `job_corpus.sbatch` | Job SLURM: sobe scheduler e workers Dask, roda 3 repetições por configuração |
+| `submeter.sh` | Submete as 6 configurações (1, 2, 4, 8, 16, 32 workers) em sequência |
+| `executar_tudo.sh` | Submissão + agregação em um único comando |
+| `test_pipeline.py` | Testes de correção: tokenização, IDF, normalização L2 |
+| `experimento_pln.ipynb` | Notebook com preparação, execução, análise, tabelas e gráficos |
+| `dataset-manifest.json` | Fonte, contagens, tamanhos e SHA-256 de cada shard |
+
+### Resultados dessa aula (HPC-5) (`resultados/`)
+
+| Arquivo | Conteúdo |
+|---|---|
+| `speedup_corpus.csv` | Mediana de t_total, t_serial e t_calc para 6 configurações de workers (mesmo cabeçalho do speedup MPI) |
+| `pipeline/` | Medições individuais (`measurement.json`) e logs dos jobs por lote |
+
+O relatório de resultados, gargalos e análise da curva de speedup está em [pipeline/RELATORIO.md](pipeline/RELATORIO.md). O passo a passo de reprodução está em [ROTEIRO_PARTE02.md](ROTEIRO_PARTE02.md).
+
+Para rodar do zero no cluster:
+
+```bash
+bash pipeline/executar_tudo.sh
+```
