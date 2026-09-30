@@ -2,8 +2,7 @@
 set -euo pipefail
 if [[ $(id -u) -eq 0 ]]; then echo 'Submeta como g02.' >&2; exit 1; fi
 cd "$(dirname "$0")"
-REPO_ROOT=$(cd .. && pwd)
-BATCH=${1:-"$REPO_ROOT/resultados/run-$(date +%Y%m%d-%H%M%S)"}
+BATCH=${1:-"$PWD/resultados/run-$(date +%Y%m%d-%H%M%S)"}
 if [[ -e "$BATCH" ]]; then echo "Lote já existe: $BATCH" >&2; exit 1; fi
 mkdir -p "$BATCH/logs" logs
 BATCH=$(cd "$BATCH" && pwd)
@@ -25,11 +24,10 @@ for workers in 1 2 4 8 16 32; do
     8) nodes=2;;
     16|32) nodes=4;;
   esac
-  dependency=()
-  [[ -z "$previous" ]] || dependency=(--dependency="afterany:$previous")
-  job=$(sbatch --parsable "${dependency[@]}" --nodes="$nodes" \
-    --output="$BATCH/logs/corpus-%j.out" job_corpus.sbatch "$workers" "$BATCH")
+  options=(--parsable --nodes="$nodes" --output="$BATCH/logs/corpus-%j.out")
+  [[ -z "$previous" ]] || options+=(--dependency="afterany:$previous")
+  job=$(sbatch "${options[@]}" job_corpus.sbatch "$workers" "$BATCH")
   printf '%s,%s,%s\n' "$workers" "$nodes" "$job" | tee -a "$BATCH/slurm_jobs.csv"
   previous=$job
 done
-printf 'Lote: %s\nAgregue ao terminar (na raiz do projeto): python pipeline/agregar.py %q --output resultados/speedup_corpus.csv\n' "$BATCH" "$BATCH"
+printf 'Lote: %s\nAgregue ao terminar: bash %q --agregar %q\n' "$BATCH" "$PWD/executar_tudo.sh" "$BATCH"

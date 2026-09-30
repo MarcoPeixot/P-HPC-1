@@ -50,40 +50,115 @@ O corpus e as 128 partições são idênticos em todas as configurações. O Act
 
 A ordem de configurações é fixa. As repetições não limpam cache de filesystem; as medianas representam o protocolo sequencial real. A taxa de aceleração compara o pipeline completo, incluindo coordenação e I/O. Com um corpus deste tamanho, esses custos podem dominar e não há expectativa de speedup linear.
 
-## Execução no cluster
+## Reprodução do zero no cluster
 
-Preparar somente no master, com permissão de escrita em `/opt/ohpc/pub`:
+O cluster deve ter OpenHPC/Slurm e NFS configurados, os quatro nós disponíveis e um usuário comum como `g02`, com `/home` compartilhado. A instalação de Slurm, Warewulf e NFS é infraestrutura prévia; os passos abaixo preparam o ambiente e o experimento sobre esse cluster.
+
+### 1. Clonar o código
+
+No master, como `g02`:
 
 ```bash
-python3.11 /home/g02/corpus/pipeline/preparar_dataset.py --directory /opt/ohpc/pub/datasets/b2w-reviews01
+cd /home/g02
+git clone https://github.com/MarcoPeixot/P-HPC-1.git
+cd /home/g02/P-HPC-1
 ```
 
-Os nós leem `/opt/ohpc/pub` por NFS somente leitura; saídas e logs de cada lote ficam em `/home/g02/corpus/resultados`, que permite escrita compartilhada. Como `g02`:
+O diretório do clone deve ser compartilhado e gravável pelos nós. O clone da branch `main` contém os arquivos e comandos documentados nesta página.
+
+### 2. Instalar Python e dependências no NFS
+
+Os jobs esperam o ambiente `hpc` em `/opt/ohpc/pub/apps/miniforge3`. Um administrador executa no master os passos de instalação. Se Miniforge e o ambiente `hpc` já existem, reutilize-os e instale somente os requirements.
+
+Se Miniforge não estiver instalado, para Linux x86_64:
 
 ```bash
-cd /home/g02/corpus
-bash pipeline/submeter.sh
-squeue -u g02
+sudo mkdir -p /opt/ohpc/pub/apps
+curl -fL https://github.com/conda-forge/miniforge/releases/latest/download/Miniforge3-Linux-x86_64.sh -o /tmp/Miniforge3-Linux-x86_64.sh
+sudo bash /tmp/Miniforge3-Linux-x86_64.sh -b -p /opt/ohpc/pub/apps/miniforge3
 ```
 
-Ao terminar, agregar o lote informado pelo script. A saída padrão Slurm fica em `LOTE/logs/corpus-<job>.out`:
+Criar o ambiente, se ainda não existir, e instalar as versões usadas pelo pipeline:
 
 ```bash
+sudo /opt/ohpc/pub/apps/miniforge3/bin/conda create -y -n hpc python=3.11 pip
+sudo /opt/ohpc/pub/apps/miniforge3/envs/hpc/bin/python -m pip install -r /home/g02/P-HPC-1/pipeline/requirements.txt
+```
+
+As dependências diretas estão em [requirements.txt](requirements.txt): NumPy 2.4.6, Dask 2026.8.0 e Distributed 2026.8.0. O preparador usa a biblioteca padrão; stopwords são baixadas de um snapshot fixo, sem exigir instalação do NLTK. O benchmark histórico usou Python 3.11.16.
+
+A instalação não interativa segue a [documentação oficial do Miniforge](https://github.com/conda-forge/miniforge#install). `/opt/ohpc/pub` precisa estar montado nos workers, com permissão de leitura dos arquivos e execução dos binários.
+
+### 3. Permitir a preparação do dataset
+
+O administrador cria o diretório do dataset no master e dá acesso ao usuário que prepara os dados:
+
+```bash
+sudo mkdir -p /opt/ohpc/pub/datasets/b2w-reviews01
+sudo chown g02:g02 /opt/ohpc/pub/datasets/b2w-reviews01
+```
+
+Os workers leem esse diretório por NFS. As saídas são gravadas no clone em `/home/g02/P-HPC-1/pipeline/resultados`.
+
+### 4. Ativar o ambiente e testar
+
+Como `g02`, no master:
+
+```bash
+cd /home/g02/P-HPC-1/pipeline
 source /opt/ohpc/pub/apps/miniforge3/bin/activate hpc
-python pipeline/agregar.py resultados/run-AAAAMMDD-HHMMSS --output resultados/speedup_corpus.csv
+python --version
+python -m pip check
+python -c 'import numpy, dask, distributed; print(numpy.__version__, dask.__version__, distributed.__version__)'
+sinfo -Nel
+python test_pipeline.py
+bash -n executar_tudo.sh submeter.sh job_corpus.sbatch
 ```
 
-A agregação exige três repetições completas para incluir cada configuração e recusa mistura de corpus, protocolo ou código. Não gera medições fictícias para jobs pendentes ou falhos.
+O teste usa três documentos com DF/IDF conhecidos e verifica TF-IDF, vetor vazio, invariância entre workers, hashes e medianas. Ele não é o benchmark do dataset completo.
 
-## Verificação de correção
+### 5. Executar o experimento com um comando
+
+Com ambiente e permissões preparados, como `g02`:
 
 ```bash
-source /opt/ohpc/pub/apps/miniforge3/bin/activate hpc
-python pipeline/test_pipeline.py
-bash -n pipeline/job_corpus.sbatch pipeline/submeter.sh
+cd /home/g02/P-HPC-1/pipeline
+bash executar_tudo.sh
 ```
 
-O teste usa três documentos com DF/IDF conhecidos, verifica os valores TF-IDF e vetor vazio, compara matrizes e estatísticas com um e dois workers e confirma rejeição de dados alterados. O benchmark real usa o corpus integral, não a fixture.
+O [executar_tudo.sh](executar_tudo.sh) ativa `hpc`, baixa ou verifica o dataset, chama [submeter.sh](submeter.sh) para as seis configurações e submete um job de agregação dependente do sucesso dos seis jobs. Cada configuração executa três repetições. O comando retorna os jobs submetidos; a execução continua pelo Slurm.
+
+Para escolher o diretório do lote:
+
+```bash
+bash executar_tudo.sh "$PWD/resultados/minha-execucao"
+```
+
+O lote deve ser novo. Acompanhe com `squeue -u g02`; as saídas Slurm ficam em `<lote>/logs/corpus-<job>.out`, junto dos logs de scheduler/workers. Se algum job falhar, a dependência `afterok` impede a agregação automática; confira os logs antes de executar novamente.
+
+Ao concluir, o CSV fica em `<lote>/speedup_corpus.csv`, junto das 18 medições e matrizes. A agregação recusa medições ausentes e preserva o CSV histórico da raiz do repositório. Para entregar um novo lote, copie o CSV validado para o nome exigido:
+
+```bash
+cp "$LOTE/speedup_corpus.csv" /home/g02/P-HPC-1/resultados/speedup_corpus.csv
+```
+
+Antes desse comando, atribua a `LOTE` o caminho completo impresso pelo script. Atualize também o relatório e copie as medições/estatísticas/logs relevantes para a entrega, preservando a identificação do lote.
+
+### Execução por etapas
+
+O `submeter.sh` existente submete as seis configurações, mas não prepara o dataset nem agrega resultados. A alternativa manual continua disponível:
+
+```bash
+cd /home/g02/P-HPC-1/pipeline
+source /opt/ohpc/pub/apps/miniforge3/bin/activate hpc
+python preparar_dataset.py
+LOTE="$PWD/resultados/run-$(date +%Y%m%d-%H%M%S)"
+bash submeter.sh "$LOTE"
+# Depois de os seis jobs concluírem com sucesso:
+bash executar_tudo.sh --agregar "$LOTE"
+```
+
+O agregador exige três repetições completas, matrizes presentes e mesmo dataset, protocolo e código. O CSV final mantém o cabeçalho da Aula 3 e contém seis linhas de medianas.
 
 ## Resultado realizado em 30/09/2026
 

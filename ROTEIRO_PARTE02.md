@@ -14,12 +14,27 @@ Ao concluir, a entrega deve conter:
 - `resultados/speedup_corpus.csv` com seis linhas de medianas e o cabeçalho `nprocs,nnodes,t_total,t_serial,t_calc`.
 - Estatísticas: tamanho do vocabulário, distribuição de tamanho dos documentos e termos de maior TF-IDF.
 
-## 2. Conferir o cluster e o ambiente
+## 2. Instalar e executar do zero
+
+A instalação do experimento está descrita integralmente em [pipeline/README.md](pipeline/README.md): clone em `/home/g02/P-HPC-1`, instalação do Miniforge/ambiente `hpc` no NFS, [requirements.txt](pipeline/requirements.txt), permissões do dataset e testes. Esses passos pressupõem que o cluster OpenHPC/Slurm e o NFS já estão configurados.
+
+Com a instalação concluída, um comando prepara o dataset, submete as 18 execuções e agenda a agregação:
+
+```bash
+cd /home/g02/P-HPC-1/pipeline
+bash executar_tudo.sh
+```
+
+O [executar_tudo.sh](pipeline/executar_tudo.sh) imprime o diretório do lote e o job de agregação. O CSV será produzido em `<lote>/speedup_corpus.csv` quando os seis jobs terminarem com sucesso. A execução é assíncrona; acompanhe com `squeue -u g02`. O CSV histórico da raiz é preservado.
+
+As seções abaixo detalham a execução por etapas. Os caminhos `/home/g02/corpus` identificam a instalação histórica validada; para um novo clone, use `/home/g02/P-HPC-1/pipeline` nos comandos de `cd` e no caminho do preparador.
+
+## 3. Conferir o cluster e o ambiente
 
 No master, como usuário `g02`:
 
 ```bash
-cd /home/g02/corpus
+cd /home/g02/P-HPC-1/pipeline
 source /opt/ohpc/pub/apps/miniforge3/bin/activate hpc
 sinfo -Nel
 which python
@@ -32,12 +47,12 @@ Os quatro nós `c1`, `c2`, `c3` e `c4` precisam estar disponíveis para as confi
 | Conteúdo | Caminho no cluster |
 | --- | --- |
 | Dataset e stopwords, leitura pelos workers | `/opt/ohpc/pub/datasets/b2w-reviews01` |
-| Código e scripts | `/home/g02/corpus` |
-| Resultados, matrizes e logs | `/home/g02/corpus/resultados` |
+| Código e scripts | `/home/g02/P-HPC-1/pipeline` |
+| Resultados, matrizes e logs | `/home/g02/P-HPC-1/pipeline/resultados` |
 
-O ambiente e o dataset em `/opt/ohpc/pub` são compartilhados por NFS e montados somente para leitura nos workers. Código de execução e saídas ficam em `/home/g02/corpus`, compartilhado e gravável.
+O ambiente e o dataset em `/opt/ohpc/pub` são compartilhados por NFS e montados somente para leitura nos workers. Código e saídas da nova execução ficam no clone em `/home/g02/P-HPC-1/pipeline`, compartilhado e gravável. Os caminhos `/home/g02/corpus` citados no relatório identificam a execução histórica.
 
-## 3. Preparar e descrever o dataset
+## 4. Preparar e descrever o dataset
 
 A implementação usa [B2W-Reviews01, da B2W Digital](https://github.com/americanas-tech/b2w-reviews01), com avaliações de produtos em português brasileiro, sob licença CC BY-NC-SA 4.0.
 
@@ -55,12 +70,12 @@ A implementação usa [B2W-Reviews01, da B2W Digital](https://github.com/america
 Para preparar o dataset, executar **no master com permissão de escrita no diretório do dataset**:
 
 ```bash
-python3.11 /home/g02/corpus/pipeline/preparar_dataset.py --directory /opt/ohpc/pub/datasets/b2w-reviews01
+python3.11 /home/g02/P-HPC-1/pipeline/preparar_dataset.py --directory /opt/ohpc/pub/datasets/b2w-reviews01
 ```
 
 O [preparador](pipeline/preparar_dataset.py) baixa snapshots fixados, confere hashes, exclui textos vazios, prepara as partições e salva `manifest.json`. Quando a preparação já existe, confere os arquivos e reutiliza o dataset. O original completo permanece no NFS; o repositório contém [os metadados](pipeline/dataset-manifest.json), o código e os resultados.
 
-## 4. Conferir as quatro etapas
+## 5. Conferir as quatro etapas
 
 O executor está em [pipeline/pipeline.py](pipeline/pipeline.py):
 
@@ -72,14 +87,14 @@ O executor está em [pipeline/pipeline.py](pipeline/pipeline.py):
 Antes do benchmark, no master com o ambiente `hpc` ativado:
 
 ```bash
-cd /home/g02/corpus
-python pipeline/test_pipeline.py
-bash -n pipeline/job_corpus.sbatch pipeline/submeter.sh
+cd /home/g02/P-HPC-1/pipeline
+python test_pipeline.py
+bash -n job_corpus.sbatch submeter.sh executar_tudo.sh
 ```
 
 Os testes conferem IDF global, normalização L2, vetores vazios, invariância entre workers, integridade do dataset e agregação das medianas.
 
-## 5. Submeter as seis configurações
+## 6. Submeter as seis configurações
 
 | Workers | Nós | Workers por nó | Repetições |
 | ---: | ---: | ---: | ---: |
@@ -95,24 +110,24 @@ Cada worker usa uma thread. A configuração de um worker é single-node. Aos 32
 Como `g02`, definir um **novo diretório de lote** e submeter:
 
 ```bash
-cd /home/g02/corpus
+cd /home/g02/P-HPC-1/pipeline
 source /opt/ohpc/pub/apps/miniforge3/bin/activate hpc
 LOTE="$PWD/resultados/run-$(date +%Y%m%d-%H%M%S)"
-bash pipeline/submeter.sh "$LOTE"
+bash submeter.sh "$LOTE"
 squeue -u g02
 cat "$LOTE/slurm_jobs.csv"
 ```
 
 O [submissor](pipeline/submeter.sh) valida o dataset e chama `sbatch` para cada configuração. O [job](pipeline/job_corpus.sbatch) inicia scheduler e workers, executa três repetições do pipeline e encerra os processos ao terminar. O script recusa um lote já existente, preservando as execuções anteriores.
 
-## 6. Conferir as execuções e calcular medianas
+## 7. Conferir as execuções e calcular medianas
 
 Depois que os jobs terminarem, na mesma sessão em que `LOTE` foi definido:
 
 ```bash
-cd /home/g02/corpus
-python pipeline/agregar.py "$LOTE" --output resultados/speedup_corpus.csv
-cat resultados/speedup_corpus.csv
+bash /home/g02/P-HPC-1/pipeline/executar_tudo.sh --agregar "$LOTE"
+cp "$LOTE/speedup_corpus.csv" /home/g02/P-HPC-1/resultados/speedup_corpus.csv
+cat /home/g02/P-HPC-1/resultados/speedup_corpus.csv
 ```
 
 Para retomar em outra sessão, atribuir a `LOTE` o caminho completo do lote criado antes da agregação.
@@ -133,7 +148,7 @@ nprocs,nnodes,t_total,t_serial,t_calc
 
 Startup, validação de hashes e exportação final de JSON/vocabulário ficam fora da medição. As medianas das parcelas podem não somar exatamente à mediana total. As repetições não limpam caches e seguem ordem fixa; esse protocolo precisa ser mantido ao comparar os resultados.
 
-## 7. Organizar a entrega no repositório
+## 8. Organizar a entrega no repositório
 
 Preservar os seguintes arquivos:
 
@@ -149,7 +164,7 @@ Preservar os seguintes arquivos:
 
 As matrizes completas do lote validado permanecem em `/home/g02/corpus/resultados/run-20260930-corpus02`. Para um novo lote, copiar seu CSV, medições, estatísticas e logs para o repositório e atualizar o relatório com sua identificação; preservar a procedência das evidências.
 
-## 8. Resultado já validado
+## 9. Resultado já validado
 
 O lote `run-20260930-corpus02` concluiu os jobs 122–127: seis configurações e 18 repetições. Foram conferidos 129.098 documentos, 47.801 termos de vocabulário, 2.304 matrizes e igualdade dos resultados entre configurações. As seis medianas foram recalculadas contra as medições individuais.
 
