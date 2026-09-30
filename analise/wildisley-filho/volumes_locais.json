@@ -1,0 +1,32 @@
+{
+  "maquina": "arm64 arm",
+  "python": "3.9.6",
+  "repeticoes": 3,
+  "cpu_s_mediana": {
+    "preprocess": 1.2118581659999998,
+    "partition_metadata": 0.006433833,
+    "serial_combinacao": 0.07657920900000015,
+    "vectorize_npz": 1.4341477499999993,
+    "serial_agregacao": 0.09816029200000109
+  },
+  "pickle_vocabulario_s": {
+    "serializar": 0.0037437499999999346,
+    "desserializar": 0.004017790999998994
+  },
+  "bytes": {
+    "shards_jsonl": 21429655,
+    "estado_particoes": 24448491,
+    "metadados_gather": 6186566,
+    "vocabulario": 732594,
+    "idf": 382545,
+    "resultados_gather": 10091671,
+    "npz_escrita": 15850586,
+    "stopwords_por_tarefa": 1715
+  },
+  "entradas": {
+    "vocabulario": 47801,
+    "df_parciais": 457818,
+    "totais_parciais": 457818,
+    "particoes": 128
+  }
+}
