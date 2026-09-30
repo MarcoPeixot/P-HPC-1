@@ -1,0 +1,24 @@
+{
+  "status": "complete",
+  "protocol": "b2w-global-tfidf-v2",
+  "amm_enabled": false,
+  "workers": 1,
+  "nnodes": 1,
+  "repetition": 3,
+  "t_total": 6.353340403060429,
+  "t_serial": 1.0184193650493398,
+  "t_calc": 5.334921038011089,
+  "documents": 129098,
+  "partitions": 128,
+  "worker_hosts": {
+    "c1": 1
+  },
+  "partitions_by_host": {
+    "c1": 128
+  },
+  "dataset_manifest_sha256": "94875b2bb3a51072668e6fd0832bb96b6e878861091e72c1447792d40dc5ffe4",
+  "code_sha256": "66d2aac348d68132b92eb92e53b9c9f6d70acb1a5a0a738bbb3a4d2c6db36222",
+  "slurm_job_id": "122",
+  "matrix_format": "CSR em NPZ: indptr, indices, data, document_ids, shape",
+  "timed": "leitura, quatro etapas, coordena\u00e7\u00e3o e escrita NPZ; exclui startup, verifica\u00e7\u00e3o e export final JSON"
+}

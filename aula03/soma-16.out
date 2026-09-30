@@ -1,0 +1,8 @@
+job 16 em c1
+[prun] Master compute host = c1
+[prun] Resource manager = slurm
+[prun] Launch cmd = srun --mpi=pmix -- ./soma_reduce 2000000000 (family=openmpi5)
+N = 2000000000, 1 processos
+rank  0 somou de           1 a  2000000000: parcial = 2000000001000000000 (0.478 s)
+total    = 2000000001000000000
+esperado = 2000000001000000000  -> OK

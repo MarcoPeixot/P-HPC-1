@@ -1,0 +1,15 @@
+{
+  "status": "passed",
+  "repetitions": 18,
+  "partitions_per_run": 128,
+  "cross_run_partition_comparisons": 2176,
+  "statistics_identical": true,
+  "vocabulary_identical": true,
+  "csr_arrays_identical": true,
+  "l2_rows_valid": true,
+  "unique_documents": 129098,
+  "vocabulary_size": 47801,
+  "nonzero": 1607559,
+  "zero_rows": 100,
+  "vocabulary_sha256": "36cd7455fa87684466305f3134a172b89304dd63070caede8cc345dbec7d29e7"
+}

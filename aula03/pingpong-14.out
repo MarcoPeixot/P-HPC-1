@@ -1,0 +1,9 @@
+job 14 em c1
+[prun] Master compute host = c1
+[prun] Resource manager = slurm
+[prun] Launch cmd = srun --mpi=pmix -- ./pingpong  (family=openmpi5)
+rank 0 em c1
+mensagem de        1 bytes: ida e volta =      0.25 us   vazao =      8.0 MB/s
+mensagem de     1024 bytes: ida e volta =      0.36 us   vazao =   5671.3 MB/s
+mensagem de  1048576 bytes: ida e volta =    124.68 us   vazao =  16820.1 MB/s
+rank 1 em c1

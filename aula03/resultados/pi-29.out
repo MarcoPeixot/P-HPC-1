@@ -1,0 +1,8 @@
+job 29: 4 processos em 1 no(s): c1
+[prun] Master compute host = c1
+[prun] Resource manager = slurm
+[prun] Launch cmd = srun --mpi=pmix -- ./pi_mpi 4000000000 (family=openmpi5)
+4000000000 pontos, 4 processos em 1 no(s)
+pi estimado = 3.14157768   erro = 1.50e-05
+tempo: total 9.390 s | calculo (max) 9.390 s | arranque+reducao 0.000 s
+CSV,4,1,9.3902,0.0000,9.3901

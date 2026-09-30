@@ -1,0 +1,9 @@
+..
+----------------------------------------------------------------------
+Ran 2 tests in 0.162s
+
+OK
+{"status": "complete", "protocol": "b2w-global-tfidf-v2", "amm_enabled": false, "workers": 1, "nnodes": 1, "repetition": 1, "t_total": 0.04969685710966587, "t_serial": 0.006644704029895365, "t_calc": 0.043052153079770505, "documents": 3, "partitions": 3, "worker_hosts": {"master": 1}, "partitions_by_host": {"master": 3}, "dataset_manifest_sha256": "bf83ca363f5eed56f2716b643999f240b5b8627bd3b0fd59d7b5cb0874915421", "code_sha256": "66d2aac348d68132b92eb92e53b9c9f6d70acb1a5a0a738bbb3a4d2c6db36222", "slurm_job_id": null, "matrix_format": "CSR em NPZ: indptr, indices, data, document_ids, shape", "timed": "leitura, quatro etapas, coordena\u00e7\u00e3o e escrita NPZ; exclui startup, verifica\u00e7\u00e3o e export final JSON"}
+{"status": "complete", "protocol": "b2w-global-tfidf-v2", "amm_enabled": false, "workers": 2, "nnodes": 1, "repetition": 1, "t_total": 0.03703161992598325, "t_serial": 0.0030380659736692905, "t_calc": 0.03399355395231396, "documents": 3, "partitions": 3, "worker_hosts": {"master": 2}, "partitions_by_host": {"master": 3}, "dataset_manifest_sha256": "bf83ca363f5eed56f2716b643999f240b5b8627bd3b0fd59d7b5cb0874915421", "code_sha256": "66d2aac348d68132b92eb92e53b9c9f6d70acb1a5a0a738bbb3a4d2c6db36222", "slurm_job_id": null, "matrix_format": "CSR em NPZ: indptr, indices, data, document_ids, shape", "timed": "leitura, quatro etapas, coordena\u00e7\u00e3o e escrita NPZ; exclui startup, verifica\u00e7\u00e3o e export final JSON"}
+{"configurations_complete": [1, 2, 4, 8, 16, 32], "missing": [], "output": "/tmp/tmp8z4y45f0/speedup.csv"}
+{"configurations_complete": [1, 2, 4, 8, 16], "missing": [32], "output": "/tmp/tmp8z4y45f0/partial.csv"}

@@ -1,0 +1,15 @@
+job 19 em c4
+[prun] Master compute host = c4
+[prun] Resource manager = slurm
+[prun] Launch cmd = srun --mpi=pmix -- ./soma_reduce 2000000000 (family=openmpi5)
+N = 2000000000, 8 processos
+rank  0 somou de           1 a   250000000: parcial = 31250000125000000 (0.129 s)
+total    = 2000000001000000000
+esperado = 2000000001000000000  -> OK
+rank  1 somou de   250000001 a   500000000: parcial = 93750000125000000 (0.129 s)
+rank  2 somou de   500000001 a   750000000: parcial = 156250000125000000 (0.128 s)
+rank  3 somou de   750000001 a  1000000000: parcial = 218750000125000000 (0.129 s)
+rank  4 somou de  1000000001 a  1250000000: parcial = 281250000125000000 (0.129 s)
+rank  5 somou de  1250000001 a  1500000000: parcial = 343750000125000000 (0.129 s)
+rank  6 somou de  1500000001 a  1750000000: parcial = 406250000125000000 (0.128 s)
+rank  7 somou de  1750000001 a  2000000000: parcial = 468750000125000000 (0.129 s)
