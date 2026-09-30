@@ -1,3 +1,6 @@
 numpy==2.4.6
 dask==2026.8.0
 distributed==2026.8.0
+jupyterlab==4.6.4
+ipykernel==7.4.0
+matplotlib==3.11.2

@@ -27,10 +27,11 @@ Dataset público: [B2W-Reviews01, da B2W Digital](https://github.com/americanas-
 
 O original e os arquivos preparados estão no NFS em `/opt/ohpc/pub/datasets/b2w-reviews01`. O [manifest](pipeline/dataset-manifest.json) fixa fonte, snapshot, contagens, tamanhos e hashes. O dataset usa licença CC BY-NC-SA 4.0, com atribuição à B2W Digital, conforme a fonte. O dataset integral permanece no NFS.
 
-O [pipeline](pipeline/pipeline.py) implementa tokenização Unicode, remoção de stopwords portuguesas, TF-IDF com IDF global e normalização L2, e estatísticas de vocabulário, distribuição de comprimentos e termos com maior soma de TF-IDF. As matrizes são esparsas, em CSR/NPZ.
+O [notebook completo](pipeline/experimento_pln.ipynb) contém preparação do dataset, código das quatro etapas, testes, submissão e análise com tabelas e gráficos. Os scripts permanecem para a execução dos jobs Slurm. O [executor dos jobs](pipeline/pipeline.py) implementa tokenização Unicode, remoção de stopwords portuguesas, TF-IDF com IDF global e normalização L2, e estatísticas de vocabulário, distribuição de comprimentos e termos com maior soma de TF-IDF. As matrizes são esparsas, em CSR/NPZ.
 
 | Item | Arquivo |
 | --- | --- |
+| Notebook completo de execução e análise | [pipeline/experimento_pln.ipynb](pipeline/experimento_pln.ipynb) |
 | Roteiro de execução da Parte 2 | [ROTEIRO_PARTE02.md](ROTEIRO_PARTE02.md) |
 | Descrição do dataset, protocolo e reprodução | [pipeline/README.md](pipeline/README.md) |
 | Relatório de resultados e gargalos | [pipeline/RELATORIO.md](pipeline/RELATORIO.md) |

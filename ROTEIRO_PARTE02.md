@@ -1,6 +1,6 @@
 # Roteiro — Parte 2: pipeline de PLN distribuído
 
-Roteiro de execução da implementação deste repositório, organizado a partir dos requisitos da atividade. Os resultados já obtidos estão no [relatório da Parte 2](pipeline/RELATORIO.md); os detalhes do protocolo estão em [pipeline/README.md](pipeline/README.md).
+Roteiro de execução da implementação deste repositório, organizado a partir dos requisitos da atividade. O ponto de entrada é o [notebook completo](pipeline/experimento_pln.ipynb), que reúne código, testes, submissão e análise. Os resultados já obtidos estão no [relatório da Parte 2](pipeline/RELATORIO.md); os detalhes do protocolo estão em [pipeline/README.md](pipeline/README.md).
 
 ## 1. Objetivo e entregáveis
 
@@ -18,7 +18,7 @@ Ao concluir, a entrega deve conter:
 
 A instalação do experimento está descrita integralmente em [pipeline/README.md](pipeline/README.md): clone em `/home/g02/P-HPC-1`, instalação do Miniforge/ambiente `hpc` no NFS, [requirements.txt](pipeline/requirements.txt), permissões do dataset e testes. Esses passos pressupõem que o cluster OpenHPC/Slurm e o NFS já estão configurados.
 
-Com a instalação concluída, um comando prepara o dataset, submete as 18 execuções e agenda a agregação:
+Com a instalação concluída, abra `jupyter lab pipeline/experimento_pln.ipynb` na raiz do clone e execute as células. Para uma nova rodada no cluster, configure `EXECUTAR_CLUSTER = True` no notebook. A alternativa batch continua disponível; o comando abaixo prepara o dataset, submete as 18 execuções e agenda a agregação:
 
 ```bash
 cd /home/g02/P-HPC-1/pipeline
@@ -154,6 +154,7 @@ Preservar os seguintes arquivos:
 
 | Entrega | Local no repositório |
 | --- | --- |
+| Notebook completo de execução e análise | [pipeline/experimento_pln.ipynb](pipeline/experimento_pln.ipynb) |
 | Este roteiro | [ROTEIRO_PARTE02.md](ROTEIRO_PARTE02.md) |
 | Descrição e protocolo | [pipeline/README.md](pipeline/README.md) |
 | Relatório e análise de resultados | [pipeline/RELATORIO.md](pipeline/RELATORIO.md) |
