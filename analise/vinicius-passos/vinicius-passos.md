@@ -1,6 +1,6 @@
 # Análise individual — Vinicius Passos
 
-Pipeline de PLN (B2W-Reviews01, 129.098 documentos, Dask/Slurm) comparado ao `pi_mpi` da Aula 3 e ao linear ideal. Dados: [speedup_corpus.csv](../resultados/speedup_corpus.csv) (mediana de 3 repetições), [speedup.csv](../resultados/speedup.csv) e [medições individuais](../resultados/pipeline/run-20260930-corpus02). Figuras geradas por [graficos.py](vinicius-passos/graficos.py).
+Pipeline de PLN (B2W-Reviews01, 129.098 documentos, Dask/Slurm) comparado ao `pi_mpi` da Aula 3 e ao linear ideal. Dados: [speedup_corpus.csv](../resultados/speedup_corpus.csv) (mediana de 3 repetições), [speedup.csv](../resultados/speedup.csv) e [medições individuais](../resultados/pipeline/run-20260930-corpus02). Figuras geradas por [graficos.py](graficos.py).
 
 ## 1. Resultados
 
@@ -17,14 +17,14 @@ Pipeline de PLN (B2W-Reviews01, 129.098 documentos, Dask/Slurm) comparado ao `pi
 
 ## 2. Speedup: corpus × pi_mpi × linear ideal
 
-![Speedup do corpus, do pi_mpi e linear ideal](vinicius-passos/speedup-tres-curvas.png)
+![Speedup do corpus, do pi_mpi e linear ideal](speedup-tres-curvas.png)
 
 - **Ideal × `pi_mpi`:** distância pequena até 16 processos, concentrada em 32 (SMT rende 1,48× em vez de 2×). O programa calcula por 34,9 s e comunica poucos bytes (`t_serial` ≤ 8 ms).
 - **`pi_mpi` × corpus:** diferença de 37,8× com 32 processos (21,5× contra 0,57×). O corpus tem só 5,3 s de trabalho útil, em 128 partições de ~42 ms cada. Coordenação e comunicação custam mais que o próprio cálculo.
 
 ## 3. Para onde vai o tempo
 
-![Decomposição t_serial / t_calc](vinicius-passos/decomposicao-tempo.png)
+![Decomposição t_serial / t_calc](decomposicao-tempo.png)
 
 - **`t_serial` cresce com os workers:** 1,02 s → 9,92 s (16% → 89% do total), cerca de +1,9 s a cada duplicação (`≈ 0,16 + 1,86·log₂p`, R² = 0,97). Com 32 workers, só esse acréscimo (8,9 s) já é maior que o tempo total de 1 worker.
 - **`t_calc` escala pouco:** 5,33 s → 1,23 s (4,35×), com piso de ~1,3 s (`≈ 1,34 + 3,89/p`, R² = 0,93).
@@ -47,7 +47,7 @@ Pipeline de PLN (B2W-Reviews01, 129.098 documentos, Dask/Slurm) comparado ao `pi
 
 ## 5. Fração serial pela lei de Amdahl
 
-![Corpus medido contra Amdahl e USL](vinicius-passos/modelos-amdahl-usl.png)
+![Corpus medido contra Amdahl e USL](modelos-amdahl-usl.png)
 
 | Método | f | Limite 1/f |
 | --- | ---: | ---: |
@@ -70,5 +70,5 @@ No corpus, `e(p)` cresce e passa de 1 a partir de 8 workers; no `pi_mpi`, fica e
 São 3 repetições em ordem fixa, sem limpar cache. `t_serial` não separa merge de broadcast, então a causa do broadcast é inferida pela conta de volume, e os logs do Dask ficaram no NFS. As figuras podem ser regeneradas com NumPy e Matplotlib ([requirements](../pipeline/requirements.txt)):
 
 ```bash
-python3 analise/vinicius-passos/graficos.py
+python3 analise/graficos.py
 ```
