@@ -1,7 +1,5 @@
 # Análise individual do pipeline distribuído
 
-**Aluna:** Kethlen Silva. **Data:** 30/09/2026.
-
 ## Análise dos procedimentos
 
 ### Aula 3 - MPI e Dask
